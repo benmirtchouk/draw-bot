@@ -13,7 +13,7 @@ void wait() {
   while(!(GetKeyState('Q') & 0x100));
 }
 
-int sz = 100;
+int sz = 100; // quality of image, 100-200 tends to be good
 
 int main() {
   /* input canvas */
