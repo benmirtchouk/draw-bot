@@ -13,7 +13,7 @@ void wait() {
   while(!(GetKeyState('Q') & 0x100));
 }
 
-int sz = 100; // quality of image, 100-200 tends to be good
+int quality = 100; // quality of image, 100-200 tends to be good
 
 int main() {
   /* input canvas */
@@ -55,8 +55,8 @@ int main() {
   cout << "rh, rw = " << rh << ", " << rw << "\n";
 
   int y0 = h / 2. - rw / 2.;
-  int scy = max(1, rh / sz);
-  int scx = max(1, rw / sz);
+  int scy = max(1, rh / quality);
+  int scx = max(1, rw / quality);
 
   vector<vector<double>> im(rw, vector<double>(rh));
   forn(y, rh) forn(x, rw) {
@@ -76,11 +76,11 @@ int main() {
     im[x][y] = 0.21 * sr + 0.72 * sg + 0.07 * sb;
   }
 
-  double dx = 1.0 * rw / sz;
-  double dy = 1.0 * rh / sz;
+  double dx = 1.0 * rw / quality;
+  double dy = 1.0 * rh / quality;
 
-  vector<vector<double>> fim(sz, vector<double>(sz));
-  forn(x, sz) forn(y, sz) {
+  vector<vector<double>> fim(quality, vector<double>(quality));
+  forn(x, quality) forn(y, quality) {
 
     double h = 0;
     int cnt = 0;
@@ -95,19 +95,19 @@ int main() {
   }
 
   /* dither */
-  bitmap_image dithered(sz, sz);
+  bitmap_image dithered(quality, quality);
 
-  forn(y, sz) forn(x, sz) {
+  forn(y, quality) forn(x, quality) {
 
     double old = fim[x][y];
     double nrw = round(old / 255) * 255;
     fim[x][y] = nrw;
     int err = old - nrw;
 
-    if (x + 1 < sz) fim[x + 1][y] += err * 7 / 16;
-    if (x - 1 >= 0 && y + 1 < sz) fim[x - 1][y + 1] += err * 3 / 16;
-    if (y + 1 < sz) fim[x][y + 1] += err * 5 / 16;
-    if (x + 1 < sz && y + 1 < sz) fim[x + 1][y + 1] += err * 1 / 16;
+    if (x + 1 < quality) fim[x + 1][y] += err * 7 / 16;
+    if (x - 1 >= 0 && y + 1 < quality) fim[x - 1][y + 1] += err * 3 / 16;
+    if (y + 1 < quality) fim[x][y + 1] += err * 5 / 16;
+    if (x + 1 < quality && y + 1 < quality) fim[x + 1][y + 1] += err * 1 / 16;
     dithered.set_pixel(x, y, fim[x][y], fim[x][y], fim[x][y]);
   }
 
@@ -115,15 +115,15 @@ int main() {
 
   /* draw */
 
-  forn(y, sz) forn(x, sz) {
+  forn(y, quality) forn(x, quality) {
     if(GetKeyState('E') & 0x100) return 0;
 
     int c = round(fim[x][y] / 255) * 255;
     if (c) continue;
 
-    SetCursorPos(x * (2 * rw / sz) / 2 + tl.x, y0 + y * (2 * rh / sz) / 2 + tl.y);
-    mouse_event(MOUSEEVENTF_LEFTDOWN, x * (2 * rw / sz) / 2 + tl.x, y0 + y * (2 * rh / sz) / 2 + tl.y, 0, 0);
-    mouse_event(MOUSEEVENTF_LEFTUP, x * (2 * rw / sz) / 2 + tl.x, y0 + y * (2 * rh / sz) / 2 + tl.y, 0, 0);
+    SetCursorPos(x * (2 * rw / quality) / 2 + tl.x, y0 + y * (2 * rh / quality) / 2 + tl.y);
+    mouse_event(MOUSEEVENTF_LEFTDOWN, x * (2 * rw / quality) / 2 + tl.x, y0 + y * (2 * rh / quality) / 2 + tl.y, 0, 0);
+    mouse_event(MOUSEEVENTF_LEFTUP, x * (2 * rw / quality) / 2 + tl.x, y0 + y * (2 * rh / quality) / 2 + tl.y, 0, 0);
   }
 
 }
