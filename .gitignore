@@ -1,6 +1,5 @@
 *.exe
 *.o
 ignore
-*.bmp
 *.jpeg
 *.jpg
