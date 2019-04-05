@@ -16,14 +16,6 @@ void wait() {
 int sz = 100;
 
 int main() {
-//  /* input color */
-//
-//  POINT black;
-//  cout << "where is black?\n";
-//  wait();
-//  Sleep(100);
-//  GetCursorPos(&black);
-
   /* input canvas */
 
   POINT tl, br;
@@ -59,8 +51,6 @@ int main() {
   cout << "y0, y1 = " << y0 << ", " << y0 + nh << "\n";
 
   vector<vector<double>> im(w, vector<double>(nh));
-  bitmap_image grey_big(w, nh);
-
   forn(y, nh) forn(x, w) {
 
     double sr = 0, sg = 0, sb = 0, cnt = 0;
@@ -76,9 +66,7 @@ int main() {
 
     sr /= cnt, sg /= cnt, sb /= cnt;
     im[x][y] = 0.21 * sr + 0.72 * sg + 0.07 * sb;
-    grey_big.set_pixel(x, y, im[x][y], im[x][y], im[x][y]);
   }
-  grey_big.save_image("grey_big.bmp");
 
   bitmap_image grey(sz, sz);
   double dx = 1.0*w / sz;
