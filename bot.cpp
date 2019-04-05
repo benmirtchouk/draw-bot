@@ -20,10 +20,10 @@ int main() {
 
   POINT tl, br;
 
-  cout << "top left?\n";
+  cout << "top left? (press Q to set)\n";
   wait();
   GetCursorPos(&tl);
-  cout << "bottom right?\n";
+  cout << "bottom right? (press Q to set)\n";
   Sleep(300);
   wait();
   GetCursorPos(&br);
@@ -35,28 +35,36 @@ int main() {
   /* input image */
 
   bitmap_image image("img.bmp");
+  if (!image){
+    cout << "make sure there's an image named img.bmp in this folder\n";
+    return 0;
+  }
   int iw = image.width(), ih = image.height();
   cout << "image: " << iw << " " << ih << "\n";
 
   /* scale image + greyscale it */
 
-  cout << "height has to be " << (int)(1.0 * ih / iw * w) << "\n";
-//  assert(1.0 * ih / iw * w <= h);
+  int rh = 1.0 * ih / iw * w;
+  int rw = w;
 
-  int y0 = h / 2. - 0.5 * ih / iw * w;
-  int nh = 1.0 * ih / iw * w;
-  int scy = max(1, nh / sz);
-  int scx = max(1, w / sz);
+  if (rh > h) {
+    rh = h;
+    rw = 1.0 * iw / ih * h;
+  }
 
-  cout << "y0, y1 = " << y0 << ", " << y0 + nh << "\n";
+  cout << "rh, rw = " << rh << ", " << rw << "\n";
 
-  vector<vector<double>> im(w, vector<double>(nh));
-  forn(y, nh) forn(x, w) {
+  int y0 = h / 2. - rw / 2.;
+  int scy = max(1, rh / sz);
+  int scx = max(1, rw / sz);
+
+  vector<vector<double>> im(rw, vector<double>(rh));
+  forn(y, rh) forn(x, rw) {
 
     double sr = 0, sg = 0, sb = 0, cnt = 0;
     rgb_t c;
-    for(int i = 1.0 * x * iw / w; i < 1.0 * (x + 1) * iw / w; i++)
-      for(int j = 1.0 * y * ih / nh; j < 1.0 * (y + 1) * ih / nh; j++) {
+    for(int i = 1.0 * x * iw / rw; i < 1.0 * (x + 1) * iw / rw; i++)
+      for(int j = 1.0 * y * ih / rh; j < 1.0 * (y + 1) * ih / rh; j++) {
         image.get_pixel(i, j, c);
         sr += c.red;
         sg += c.green;
@@ -68,9 +76,8 @@ int main() {
     im[x][y] = 0.21 * sr + 0.72 * sg + 0.07 * sb;
   }
 
-  bitmap_image grey(sz, sz);
-  double dx = 1.0*w / sz;
-  double dy = 1.0*nh / sz;
+  double dx = 1.0 * rw / sz;
+  double dy = 1.0 * rh / sz;
 
   vector<vector<double>> fim(sz, vector<double>(sz));
   forn(x, sz) forn(y, sz) {
@@ -85,9 +92,7 @@ int main() {
       }
 
     fim[x][y] = h / cnt;
-    grey.set_pixel(x, y, fim[x][y], fim[x][y], fim[x][y]);
   }
-  grey.save_image("grey.bmp");
 
   /* dither */
   bitmap_image dithered(sz, sz);
@@ -95,9 +100,9 @@ int main() {
   forn(y, sz) forn(x, sz) {
 
     double old = fim[x][y];
-    double nw = round(old / 255) * 255;
-    fim[x][y] = nw;
-    int err = old - nw;
+    double nrw = round(old / 255) * 255;
+    fim[x][y] = nrw;
+    int err = old - nrw;
 
     if (x + 1 < sz) fim[x + 1][y] += err * 7 / 16;
     if (x - 1 >= 0 && y + 1 < sz) fim[x - 1][y + 1] += err * 3 / 16;
@@ -110,14 +115,15 @@ int main() {
 
   /* draw */
 
-  forn(y,100) forn(x,100){
-      if(GetKeyState('E') & 0x100) return 0;
+  forn(y, sz) forn(x, sz) {
+    if(GetKeyState('E') & 0x100) return 0;
 
-      int c = round(fim[x][y] / 255) * 255;
-      if (c) continue;
+    int c = round(fim[x][y] / 255) * 255;
+    if (c) continue;
 
-      SetCursorPos(2*x + tl.x, y0 + 2*y + tl.y);
-      mouse_event(MOUSEEVENTF_LEFTDOWN, 2*x + tl.x, y0 + 2*y + tl.y, 0, 0);
-      mouse_event(MOUSEEVENTF_LEFTUP, 2*x + tl.x, y0 + 2*y + tl.y, 0, 0);
-    }
+    SetCursorPos(x * (2 * rw / sz) / 2 + tl.x, y0 + y * (2 * rh / sz) / 2 + tl.y);
+    mouse_event(MOUSEEVENTF_LEFTDOWN, x * (2 * rw / sz) / 2 + tl.x, y0 + y * (2 * rh / sz) / 2 + tl.y, 0, 0);
+    mouse_event(MOUSEEVENTF_LEFTUP, x * (2 * rw / sz) / 2 + tl.x, y0 + y * (2 * rh / sz) / 2 + tl.y, 0, 0);
+  }
+
 }
